@@ -6,7 +6,7 @@ on:
 
 jobs:
   pubh_to_registry:
-    name: Push Testar-Net-UI image to Docker Hub
+    name: Push MyIp image to Docker Hub
     runs-on: ubuntu-latest
     steps:
       - name: CheckOut Repository
@@ -27,4 +27,4 @@ jobs:
           context: .
           file: ./src/BlazorApp/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/myIp:1.0.0, ${{ secrets.DOCKER_HUB_USERNAME }}/myIp:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/myip:1.0.0, ${{ secrets.DOCKER_HUB_USERNAME }}/myip:latest
