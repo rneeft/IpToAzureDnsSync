@@ -25,6 +25,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./src/BlazorApp/Dockerfile
+          file: ./src/MyIp/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/myip:1.0.0, ${{ secrets.DOCKER_HUB_USERNAME }}/myip:latest
