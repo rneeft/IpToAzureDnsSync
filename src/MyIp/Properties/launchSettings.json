@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MyIp": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
