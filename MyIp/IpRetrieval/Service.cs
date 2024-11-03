@@ -1,34 +1,43 @@
 using Microsoft.Extensions.Options;
+using System.Net;
 
 namespace MyIp.IpRetrieval;
 
-public interface IIpRetrievalService
+public interface ICurrentIPAddress
 {
-    Task<string?> CurrentIpAddress();
+    Task<IPAddress?> CurrentIpAddress();
 }
 
-public class IpifyIpRetrieval : IIpRetrievalService
+public class IpifyService : ICurrentIPAddress
 {
     private readonly HttpClient _httpClient;
-    private readonly IOptionsMonitor<Ipify> _options;
+    private readonly IOptionsMonitor<IpifySettings> _options;
+    private readonly InMemoryDatabase _inMemoryDatabase;
 
-    public IpifyIpRetrieval(HttpClient httpClient, IOptionsMonitor<Ipify> options)
+    public IpifyService(HttpClient httpClient, IOptionsMonitor<IpifySettings> options, InMemoryDatabase inMemoryDatabase)
     {
         _httpClient = httpClient;
         _options = options;
+        _inMemoryDatabase = inMemoryDatabase;
     }
 
-    public async Task<string?> CurrentIpAddress()
+    public async Task<IPAddress?> CurrentIpAddress()
     {
         var response = await _httpClient.GetAsync(_options.CurrentValue.QueryUri);
 
-        return response.IsSuccessStatusCode
-            ? await response.Content.ReadAsStringAsync()
-            : null;
-    }
-}
+        _inMemoryDatabase.LastRetrieveal = DateTime.UtcNow;
 
-public class Ipify
-{
-    public required Uri QueryUri { get; init; }
+        if (response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (IPAddress.TryParse(body, out IPAddress? iPAddress))
+            {
+                _inMemoryDatabase.CurrentIPAddress = iPAddress;
+                return iPAddress;
+            }
+        }
+
+        return null;
+    }
 }

@@ -8,10 +8,10 @@ namespace MyIp.Pages;
 public class IndexModel : PageModel
 {
     private readonly ILogger<IndexModel> _logger;
-    private readonly IIpRetrievalService _ipRetrievalService;
+    private readonly ICurrentIPAddress _ipRetrievalService;
     private readonly AzureDnsService _azureDnsService;
 
-    public IndexModel(ILogger<IndexModel> logger, IIpRetrievalService ipRetrievalService, AzureDnsService azureDnsService)
+    public IndexModel(ILogger<IndexModel> logger, ICurrentIPAddress ipRetrievalService, AzureDnsService azureDnsService)
     {
         _logger = logger;
         _ipRetrievalService = ipRetrievalService;

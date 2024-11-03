@@ -1,3 +1,4 @@
+using MyIp;
 using MyIp.AzureDns;
 using MyIp.IpRetrieval;
 
@@ -5,12 +6,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddHttpClient()
-    .AddSingleton<IIpRetrievalService, IpifyIpRetrieval>()
-    .Configure<Ipify>(builder.Configuration.GetSection("Ipify"));
+    .AddSingleton<ICurrentIPAddress, IpifyService>()
+    .Configure<IpifySettings>(builder.Configuration.GetSection("IpifySettings"));
 
 builder.Services
     .AddTransient<AzureDnsService>()
     .Configure<AzureDnsSettings>(builder.Configuration.GetSection("AzureDns"));
+
+builder.Services
+    .AddSingleton<InMemoryDatabase>();
 
 // Add services to the container.
 builder.Services.AddRazorPages();
