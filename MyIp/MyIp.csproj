@@ -18,4 +18,8 @@
       <PackageReference Include="Azure.ResourceManager.Dns" Version="1.1.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\src\MyIp.Aspire.ServiceDefaults\MyIp.Aspire.ServiceDefaults.csproj" />
+    </ItemGroup>
+
 </Project>
