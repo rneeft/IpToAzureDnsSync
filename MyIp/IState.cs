@@ -44,7 +44,8 @@ public class InMemoryState : IState
         if (CurrentIpAddress is not null && !CurrentIpAddress.Equals(ipAddress))
         {
             UsedIpAddresses.Add(ipAddress);
-            CurrentIpAddress = ipAddress;
         }
+        
+        CurrentIpAddress = ipAddress;
     }
 }

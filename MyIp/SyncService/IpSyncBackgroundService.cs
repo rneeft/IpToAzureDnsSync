@@ -40,7 +40,7 @@ public class IpSyncBackgroundService : BackgroundService
         var currentIp = await _ipifyService.CurrentIpAddressAsync(cancellationToken);
         var ipFromDns = await _azureDnsService.CurrentARecordValues(cancellationToken);
         
-        _options.LogInformation("Startup completed. CurrentIp: '{CurrentIp}'. AzureDnsIp: '{AzureDnsIp}')", currentIp, ipFromDns);
+        _options.LogInformation("Startup completed. CurrentIp: '{CurrentIp}'. AzureDnsIp: '{AzureDnsIp}'", currentIp, ipFromDns);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
