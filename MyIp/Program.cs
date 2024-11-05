@@ -1,27 +1,30 @@
 using MyIp;
 using MyIp.AzureDns;
 using MyIp.IpRetrieval;
+using MyIp.SyncService;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddHttpClient()
-    .AddSingleton<ICurrentIPAddress, IpifyService>()
-    .Configure<IpifySettings>(builder.Configuration.GetSection("IpifySettings"));
+    .AddSingleton<ICurrentIpAddress, IpifyService>()
+    .Configure<IpifySettings>(builder.Configuration.GetSection("Ipify"));
 
 builder.Services
     .AddTransient<AzureDnsService>()
     .Configure<AzureDnsSettings>(builder.Configuration.GetSection("AzureDns"));
 
 builder.Services
-    .AddSingleton<InMemoryDatabase>();
+    .Configure<SyncSettings>(builder.Configuration.GetSection("Sync"))
+    .AddHostedService<IpSyncBackgroundService>();
 
-// Add services to the container.
+builder.Services
+    .AddSingleton<IState, InMemoryState>();
+
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -29,7 +32,6 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 

@@ -10,15 +10,15 @@ namespace MyIp.AzureDns;
 public class AzureDnsService
 {
     private readonly IOptionsMonitor<AzureDnsSettings> _options;
-    private readonly InMemoryDatabase _inMemoryDatabase;
+    private readonly IState _inMemoryState;
 
-    public AzureDnsService(IOptionsMonitor<AzureDnsSettings> options, InMemoryDatabase inMemoryDatabase)
+    public AzureDnsService(IOptionsMonitor<AzureDnsSettings> options, IState inMemoryState)
     {
         _options = options;
-        _inMemoryDatabase = inMemoryDatabase;
+        _inMemoryState = inMemoryState;
     }
 
-    public async Task<IPAddress?> CurrentARecordValues()
+    public async Task<IPAddress?> CurrentARecordValues(CancellationToken cancellationToken)
     {
         var credentials = new DefaultAzureCredential();
         var client = new ArmClient(credentials);
@@ -30,7 +30,7 @@ public class AzureDnsService
 
         var dnsZone = client.GetDnsZoneResource(dnsZoneResourceId);
 
-        DnsARecordResource dnsARecord = await dnsZone.GetDnsARecords().GetAsync(_options.CurrentValue.RecordSetName);
+        DnsARecordResource dnsARecord = await dnsZone.GetDnsARecords().GetAsync(_options.CurrentValue.RecordSetName,cancellationToken);
 
         if (dnsARecord.HasData)
         {
@@ -38,11 +38,11 @@ public class AzureDnsService
                 .Select(x => x.IPv4Address)
                 .FirstOrDefault();
 
-            _inMemoryDatabase.InDnsZone = ipInDns;
+            _inMemoryState.InDnsZone = ipInDns;
             return ipInDns;
         }
 
-        _inMemoryDatabase.InDnsZone = null;
+        _inMemoryState.InDnsZone = null;
         return null;
     }
 
@@ -56,6 +56,8 @@ public class AzureDnsService
             _options.CurrentValue.ResourceGroupName,
             _options.CurrentValue.DnsZoneName);
 
+        
+        
         var dnsZone = client.GetDnsZoneResource(dnsZoneResourceId);
 
         DnsARecordResource dnsARecord = await dnsZone.GetDnsARecords().GetAsync(_options.CurrentValue.RecordSetName);

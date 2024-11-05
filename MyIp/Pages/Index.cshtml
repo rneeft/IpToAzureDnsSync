@@ -1,5 +1,5 @@
 ﻿@page
-@inject InMemoryDatabase database;
+@inject IState State;
 
 @model IndexModel
 @{
@@ -9,14 +9,14 @@
 <div class="text-center">
     <p>
         <b>Last Retrieval</b><br/>
-        @database.LastRetrieval.ToString("G")
+        @State.LastRetrieval.ToString("G")
     </p>
     <p>
         <b>Current WAN Ip Address</b><br/>
-        @database.CurrentIpAddress ?? "Unknown"
+        @State.CurrentIpAddress ?? "Unknown"
     </p>
     <p>
         <b>Current DNS Ip Address</b>
-        @database.InDnsZone ?? "Unknown"
+        @State.InDnsZone ?? "Unknown"
     </p>
 </div>
