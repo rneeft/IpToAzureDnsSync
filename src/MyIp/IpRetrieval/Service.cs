@@ -33,7 +33,7 @@ public class IpifyService : ICurrentIPAddress
 
             if (IPAddress.TryParse(body, out IPAddress? iPAddress))
             {
-                _inMemoryDatabase.CurrentIpAddress = iPAddress;
+                _inMemoryDatabase.Current = iPAddress;
                 return iPAddress;
             }
         }

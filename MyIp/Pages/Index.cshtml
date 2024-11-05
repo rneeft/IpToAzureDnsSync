@@ -1,15 +1,22 @@
 ﻿@page
+@inject InMemoryDatabase database;
+
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
     <p>
-        @ViewData["Ip"]
-        <br/>
-        @ViewData["FirstItem"]
+        <b>Last Retrieval</b><br/>
+        @database.LastRetrieval.ToString("G")
+    </p>
+    <p>
+        <b>Current WAN Ip Address</b><br/>
+        @database.CurrentIpAddress ?? "Unknown"
+    </p>
+    <p>
+        <b>Current DNS Ip Address</b>
+        @database.InDnsZone ?? "Unknown"
     </p>
 </div>

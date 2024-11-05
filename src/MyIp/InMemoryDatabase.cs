@@ -8,7 +8,7 @@ public class InMemoryDatabase
 
     public DateTime LastRetrieval { get; set; }
 
-    public IPAddress? CurrentIpAddress { get; set; }
+    public IPAddress? Current { get; set; }
 
     public IPAddress? InDnsZone { get; set; }
 }
