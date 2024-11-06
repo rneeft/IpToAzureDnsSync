@@ -36,16 +36,19 @@ public class InMemoryState : IState
     
     public int ErrorCountIpRetrieval { get; set; }
     
-    
     public void NewIpAddress(IPAddress ipAddress)
     {
         ErrorCountIpRetrieval = 0;
 
-        if (CurrentIpAddress is not null && !CurrentIpAddress.Equals(ipAddress))
+        if (IpHasChanged(ipAddress))
         {
+            CurrentIpAddress = ipAddress;
             UsedIpAddresses.Add(ipAddress);
         }
-        
-        CurrentIpAddress = ipAddress;
+    }
+
+    private bool IpHasChanged(IPAddress ipAddress)
+    {
+        return !ipAddress.Equals(CurrentIpAddress);
     }
 }

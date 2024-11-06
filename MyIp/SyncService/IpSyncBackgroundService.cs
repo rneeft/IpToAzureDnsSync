@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.Extensions.Options;
 using MyIp.AzureDns;
 using MyIp.IpRetrieval;
@@ -6,11 +7,21 @@ namespace MyIp.SyncService;
 
 public class IpSyncBackgroundService : BackgroundService
 {
-    private readonly ILogger<IpSyncBackgroundService> _options;
+    private readonly ILogger<IpSyncBackgroundService> _logger;
     private readonly IServiceProvider _serviceCollection;
     private readonly IState _state;
+    private readonly IOptionsMonitor<SyncSettings> _syncSettings;
 
-    private ICurrentIpAddress _ipifyService
+    public IpSyncBackgroundService(ILogger<IpSyncBackgroundService> logger, IServiceProvider serviceCollection, IState state, IOptionsMonitor<SyncSettings> syncSettings)
+    {
+        _logger = logger;
+        _serviceCollection = serviceCollection;
+        _state = state;
+        _syncSettings = syncSettings;
+    }
+    
+    
+    private ICurrentIpAddress IpifyService
     {
         get
         {
@@ -18,29 +29,21 @@ public class IpSyncBackgroundService : BackgroundService
         }    
     }
 
-    private AzureDnsService _azureDnsService
+    private AzureDnsService AzureDnsService
     {
         get
         {
             return _serviceCollection.GetRequiredService<AzureDnsService>();
         }
     }
-    private readonly IOptionsMonitor<SyncSettings> _syncSettings;
 
-    public IpSyncBackgroundService(ILogger<IpSyncBackgroundService> options, IServiceProvider serviceCollection, IState state, IOptionsMonitor<SyncSettings> syncSettings)
-    {
-        _options = options;
-        _serviceCollection = serviceCollection;
-        _state = state;
-        _syncSettings = syncSettings;
-    }
 
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        var currentIp = await _ipifyService.CurrentIpAddressAsync(cancellationToken);
-        var ipFromDns = await _azureDnsService.CurrentARecordValues(cancellationToken);
+        var currentIp = await IpifyService.CurrentIpAddressAsync(cancellationToken);
+        var ipFromDns = await AzureDnsService.CurrentARecordValues(cancellationToken);
         
-        _options.LogInformation("Startup completed. CurrentIp: '{CurrentIp}'. AzureDnsIp: '{AzureDnsIp}'", currentIp, ipFromDns);
+        _logger.LogInformation("Startup completed. CurrentIp: '{CurrentIp}'. AzureDnsIp: '{AzureDnsIp}'", currentIp, ipFromDns);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -55,26 +58,34 @@ public class IpSyncBackgroundService : BackgroundService
         }
         else
         {
-            _options.LogInformation("DoSync disabled");
+            _logger.LogInformation("DoSync disabled");
         }
     }
 
     private async Task DoSync(CancellationToken cancellationToken)
     {
-        await _ipifyService.CurrentIpAddressAsync(cancellationToken);
-        await _azureDnsService.CurrentARecordValues(cancellationToken);
+        await IpifyService.CurrentIpAddressAsync(cancellationToken);
+        await AzureDnsService.CurrentARecordValues(cancellationToken);
 
         if (cancellationToken.IsCancellationRequested)
         {
             return;
         }
         
-        if (_state is { ErrorCountIpRetrieval: 0, CurrentIpAddress: not null })
+        if (CurrentIpAddressIsKnownWithoutError() && IpAddressChanged())
         {
-            if (!_state.CurrentIpAddress.Equals(_state.InDnsZone))
-            {
-                await _azureDnsService.Update(_state.CurrentIpAddress);
-            }
+            _logger.LogInformation("Ip address changed updating DNS to {NewIp}", _state.CurrentIpAddress);
+            await AzureDnsService.Update(_state.CurrentIpAddress!);
         }
+    }
+
+    private bool CurrentIpAddressIsKnownWithoutError()
+    {
+        return _state is { ErrorCountIpRetrieval: 0, CurrentIpAddress: not null };
+    }
+
+    private bool IpAddressChanged()
+    {
+        return !_state?.CurrentIpAddress?.Equals(_state.InDnsZone) ?? false;
     }
 }
