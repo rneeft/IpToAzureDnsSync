@@ -37,19 +37,12 @@ public class IpSyncBackgroundService : BackgroundService
         }
     }
 
-
-    public override async Task StartAsync(CancellationToken cancellationToken)
-    {
-        var currentIp = await IpifyService.CurrentIpAddressAsync(cancellationToken);
-        var ipFromDns = await AzureDnsService.CurrentARecordValues(cancellationToken);
-        
-        _logger.LogInformation("Startup completed. CurrentIp: '{CurrentIp}'. AzureDnsIp: '{AzureDnsIp}'", currentIp, ipFromDns);
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (_syncSettings.CurrentValue.DoSync)
         {
+            _logger.LogInformation("DoSync enabled");
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 await DoSync(stoppingToken);
