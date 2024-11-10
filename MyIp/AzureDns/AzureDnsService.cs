@@ -10,12 +10,40 @@ namespace MyIp.AzureDns;
 public class AzureDnsService
 {
     private readonly IOptionsMonitor<AzureDnsSettings> _options;
+    private readonly ILogger<AzureDnsService> _logger;
     private readonly IState _inMemoryState;
 
-    public AzureDnsService(IOptionsMonitor<AzureDnsSettings> options, IState inMemoryState)
+    public AzureDnsService(IOptionsMonitor<AzureDnsSettings> options, ILogger<AzureDnsService> logger, IState inMemoryState)
     {
         _options = options;
+        _logger = logger;
         _inMemoryState = inMemoryState;
+    }
+
+    public async Task<bool> CanAccessAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var credentials = new DefaultAzureCredential();
+            var client = new ArmClient(credentials);
+
+            var dnsZoneResourceId = DnsZoneResource.CreateResourceIdentifier(
+                _options.CurrentValue.SubscriptionId,
+                _options.CurrentValue.ResourceGroupName,
+                _options.CurrentValue.DnsZoneName);
+
+            var dnsZone = client.GetDnsZoneResource(dnsZoneResourceId);
+
+            DnsARecordResource dnsARecord = await dnsZone.GetDnsARecords()
+                .GetAsync(_options.CurrentValue.RecordSetName, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Cannot access Azure DNS Zone");   
+            return false;
+        }
+
+        return true;
     }
 
     public async Task<IPAddress?> CurrentARecordValues(CancellationToken cancellationToken)
@@ -55,8 +83,6 @@ public class AzureDnsService
             _options.CurrentValue.SubscriptionId,
             _options.CurrentValue.ResourceGroupName,
             _options.CurrentValue.DnsZoneName);
-
-        
         
         var dnsZone = client.GetDnsZoneResource(dnsZoneResourceId);
 

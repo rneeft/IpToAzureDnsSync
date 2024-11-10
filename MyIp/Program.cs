@@ -21,6 +21,9 @@ builder.Services
 builder.Services
     .AddSingleton<IState, InMemoryState>();
 
+builder.Services.AddHealthChecks()
+    .AddCheck<MyIpHealthCheck>("MyIpHealth");
+
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
@@ -39,6 +42,19 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.MapHealthChecks("/healthz");
+app.MapGet("/state", (IState state) =>
+{
+    return Results.Ok(new
+    {
+        LastRetrieval= state.LastRetrieval.ToString("G"),
+        CurrentIpAddress = state.CurrentIpAddress?.ToString(),
+        CurrentDnsAddress = state.InDnsZone?.ToString(),
+        UsedIpAddresses = state
+            .UsedIpAddresses
+            .Select(x => x.ToString())
+    });
+});
 
 app.UseAuthorization();
 
