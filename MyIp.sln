@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyIp", "MyIp\MyIp.csproj", "{E83D8E01-1EDA-4B1C-B8E0-AF3F1748F2C8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyIp", "src\MyIp\MyIp.csproj", "{E83D8E01-1EDA-4B1C-B8E0-AF3F1748F2C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
