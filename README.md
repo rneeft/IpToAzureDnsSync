@@ -6,7 +6,7 @@ You can use the following docker compose to setup the image, in your local envir
 ```yaml
 services:
   ipazuresync:
-    image: rneeft/ipazuresync:latest
+    image: rneeft/ipazuresync:1.0.1
     ports:
       - "100:8080"   # Maps host port 100 to container port 8080
       - "101:443"    # Maps host port 101 to container port 443
