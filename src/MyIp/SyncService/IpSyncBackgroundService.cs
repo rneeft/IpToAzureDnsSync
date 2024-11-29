@@ -19,23 +19,6 @@ public class IpSyncBackgroundService : BackgroundService
         _state = state;
         _syncSettings = syncSettings;
     }
-    
-    
-    private ICurrentIpAddress IpifyService
-    {
-        get
-        {
-            return _serviceCollection.GetRequiredService<ICurrentIpAddress>();
-        }    
-    }
-
-    private AzureDnsService AzureDnsService
-    {
-        get
-        {
-            return _serviceCollection.GetRequiredService<AzureDnsService>();
-        }
-    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -46,6 +29,8 @@ public class IpSyncBackgroundService : BackgroundService
             while (!stoppingToken.IsCancellationRequested)
             {
                 await DoSync(stoppingToken);
+                _state.LastRetrieval = DateTime.Today;
+                _state.NextRetrieval = DateTime.Today.Add(_syncSettings.CurrentValue.Timeout);
                 await Task.Delay(_syncSettings.CurrentValue.Timeout, stoppingToken);
             }
         }
@@ -57,8 +42,10 @@ public class IpSyncBackgroundService : BackgroundService
 
     private async Task DoSync(CancellationToken cancellationToken)
     {
-        await IpifyService.CurrentIpAddressAsync(cancellationToken);
-        await AzureDnsService.CurrentARecordValues(cancellationToken);
+        var azureDnsService = _serviceCollection.GetRequiredService<AzureDnsService>();
+        
+        await _serviceCollection.GetRequiredService<ICurrentIpAddress>().CurrentIpAddressAsync(cancellationToken);
+        await azureDnsService.CurrentARecordValues(cancellationToken);
 
         if (cancellationToken.IsCancellationRequested)
         {
@@ -68,7 +55,7 @@ public class IpSyncBackgroundService : BackgroundService
         if (CurrentIpAddressIsKnownWithoutError() && IpAddressChanged())
         {
             _logger.LogInformation("Ip address changed updating DNS to {NewIp}", _state.CurrentIpAddress);
-            await AzureDnsService.Update(_state.CurrentIpAddress!);
+            await azureDnsService.Update(_state.CurrentIpAddress!);
         }
     }
 

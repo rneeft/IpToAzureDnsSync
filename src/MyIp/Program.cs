@@ -47,7 +47,8 @@ app.MapGet("/state", (IState state) =>
 {
     return Results.Ok(new
     {
-        LastRetrieval= state.LastRetrieval.ToString("G"),
+        LastRetrieval= state.LastRetrieval?.ToString("G"),
+        NextRetrieval= state.NextRetrieval?.ToString("G"),
         CurrentIpAddress = state.CurrentIpAddress?.ToString(),
         CurrentDnsAddress = state.InDnsZone?.ToString(),
         UsedIpAddresses = state

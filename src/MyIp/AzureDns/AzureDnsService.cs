@@ -24,18 +24,19 @@ public class AzureDnsService
     {
         try
         {
-            var credentials = new DefaultAzureCredential();
-            var client = new ArmClient(credentials);
+            var dnsZone = CreateDnsZone();
 
-            var dnsZoneResourceId = DnsZoneResource.CreateResourceIdentifier(
-                _options.CurrentValue.SubscriptionId,
-                _options.CurrentValue.ResourceGroupName,
-                _options.CurrentValue.DnsZoneName);
+            if (!string.IsNullOrWhiteSpace(_options.CurrentValue.RecordSetName))
+            {
+                await dnsZone.GetDnsARecords()
+                    .GetAsync(_options.CurrentValue.RecordSetName, cancellationToken);               
+            }
 
-            var dnsZone = client.GetDnsZoneResource(dnsZoneResourceId);
-
-            DnsARecordResource dnsARecord = await dnsZone.GetDnsARecords()
-                .GetAsync(_options.CurrentValue.RecordSetName, cancellationToken);
+            foreach (var name in _options.CurrentValue.RecordSetNames)
+            {
+                await dnsZone.GetDnsARecords()
+                    .GetAsync(_options.CurrentValue.RecordSetName, cancellationToken);
+            }
         }
         catch (Exception ex)
         {
@@ -48,15 +49,7 @@ public class AzureDnsService
 
     public async Task<IPAddress?> CurrentARecordValues(CancellationToken cancellationToken)
     {
-        var credentials = new DefaultAzureCredential();
-        var client = new ArmClient(credentials);
-
-        var dnsZoneResourceId = DnsZoneResource.CreateResourceIdentifier(
-            _options.CurrentValue.SubscriptionId,
-            _options.CurrentValue.ResourceGroupName,
-            _options.CurrentValue.DnsZoneName);
-
-        var dnsZone = client.GetDnsZoneResource(dnsZoneResourceId);
+        var dnsZone = CreateDnsZone();
 
         DnsARecordResource dnsARecord = await dnsZone.GetDnsARecords().GetAsync(_options.CurrentValue.RecordSetName,cancellationToken);
 
@@ -76,6 +69,21 @@ public class AzureDnsService
 
     public async Task Update(IPAddress newIpAddress)
     {
+        var dnsZone = CreateDnsZone();
+
+        if (!string.IsNullOrWhiteSpace(_options.CurrentValue.RecordSetName))
+        {
+            await UpdateIp(dnsZone, _options.CurrentValue.RecordSetName, newIpAddress);
+        }
+
+        foreach (var name in _options.CurrentValue.RecordSetNames)
+        {
+            await UpdateIp(dnsZone, name, newIpAddress);
+        }
+    }
+
+    private DnsZoneResource CreateDnsZone()
+    {
         var credentials = new DefaultAzureCredential();
         var client = new ArmClient(credentials);
 
@@ -86,10 +94,16 @@ public class AzureDnsService
         
         var dnsZone = client.GetDnsZoneResource(dnsZoneResourceId);
 
-        DnsARecordResource dnsARecord = await dnsZone.GetDnsARecords().GetAsync(_options.CurrentValue.RecordSetName);
+        return dnsZone;
+    }
+
+    private async Task UpdateIp(DnsZoneResource dnsZone, string aRecord, IPAddress ipAddress)
+    {
+        _logger.LogInformation("Updating '{ARecord}' to '{IPAddress}'", aRecord, ipAddress);
+        DnsARecordResource dnsARecord = await dnsZone.GetDnsARecords().GetAsync(aRecord);
 
         dnsARecord.Data.DnsARecords.Clear();
-        dnsARecord.Data.DnsARecords.Add(new DnsARecordInfo { IPv4Address = newIpAddress });
+        dnsARecord.Data.DnsARecords.Add(new DnsARecordInfo { IPv4Address = ipAddress });
 
         await dnsARecord.UpdateAsync(dnsARecord.Data);
     }

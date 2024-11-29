@@ -20,8 +20,6 @@ public class IpifyService : ICurrentIpAddress
     {
         var response = await _httpClient.GetAsync(_options.CurrentValue.QueryUri, cancellationToken);
 
-        _inMemoryState.LastRetrieval = DateTime.UtcNow;
-
         if (response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync(cancellationToken);

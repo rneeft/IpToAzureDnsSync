@@ -7,16 +7,15 @@
             <legend>My IP Stats</legend>
             <div class="mb-3">
                 <label for="LastRetrieval" class="form-label">Last Retrieval</label>
-                <input type="text" id="currentWANIp" class="form-control" value="@State.LastRetrieval.ToString("G")">
-                
+                <input type="text" id="LastRetrieval" class="form-control" value="@State.LastRetrieval?.ToString("G")" >
+            </div>
+            <div class="mb-3">
+                <label for="NextRetrieval" class="form-label">Next Retrieval</label>
+                <input type="text" id="NextRetrieval" class="form-control" value="@State.NextRetrieval?.ToString("G")" >
             </div>
             <div class="mb-3">
                 <label for="currentWANIp" class="form-label">Current WAN Ip Address</label>
                 <input type="text" id="currentWANIp" class="form-control" value="@State.CurrentIpAddress">
-            </div>
-            <div class="mb-3">
-                <label for="currentDnsIp" class="form-label">Current DNS Ip Address</label>
-                <input type="text" id="currentDnsIp" class="form-control" value="@State.InDnsZone">
             </div>
             <div class="mb-3">
                 <label for="previousIps" class="form-label">Previous IP Addresses</label>

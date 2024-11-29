@@ -4,9 +4,10 @@ namespace MyIp;
 
 public interface IState
 {
-    public List<IPAddress> UsedIpAddresses { get; }
+    public List<(DateTime retrieved, IPAddress ipaddress)> UsedIpAddresses { get; }
 
-    public DateTime LastRetrieval { get; set; }
+    public DateTime? LastRetrieval { get; set; }
+    public DateTime? NextRetrieval { get; set; } 
 
     public IPAddress? CurrentIpAddress { get; }
 
@@ -26,9 +27,10 @@ public class InMemoryState : IState
         _logger = logger;
     }
     
-    public List<IPAddress> UsedIpAddresses { get; } = [];
+    public List<(DateTime retrieved, IPAddress ipaddress)> UsedIpAddresses { get; } = [];
 
-    public DateTime LastRetrieval { get; set; }
+    public DateTime? LastRetrieval { get; set; }
+    public DateTime? NextRetrieval { get; set; }
 
     public IPAddress? CurrentIpAddress { get; private set; }
 
@@ -43,7 +45,7 @@ public class InMemoryState : IState
         if (IpHasChanged(ipAddress))
         {
             CurrentIpAddress = ipAddress;
-            UsedIpAddresses.Add(ipAddress);
+            UsedIpAddresses.Add((DateTime.Today, ipAddress));
         }
     }
 
